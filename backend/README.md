@@ -28,9 +28,9 @@ Backend 100% em **JavaScript** (sem TypeScript).
 | Node.js | 22.12 ou superior (mínimo do Prisma 7.10; testado com 24.16) | execução (módulos ESM) |
 | Express | 5.3.0 | servidor HTTP e rotas |
 | Prisma (`prisma` + `@prisma/client`) | **7.10.0** (exata) | ORM e migrations |
-| `@prisma/adapter-mariadb` | **7.10.0** (exata) | adapter do Prisma para MySQL |
-| mariadb | 3.5.5 | driver usado pelo adapter |
-| MySQL | 8 (ou MariaDB/XAMPP) | banco de dados |
+| `@prisma/adapter-pg` | **7.10.0** (exata) | adapter do Prisma para PostgreSQL |
+| pg | 8.23.1 | driver do PostgreSQL usado pelo adapter |
+| PostgreSQL | 15 ou superior (Supabase em produção) | banco de dados |
 | jsonwebtoken | 9.0.3 | autenticação JWT |
 | bcryptjs | 3.0.3 | hash de senhas |
 | cors | 2.8.6 | CORS |
@@ -40,13 +40,13 @@ Frontend (AV2): React + Tailwind CSS **4.3.0** (exata). As versões travadas sã
 
 ### Prisma 7 em JavaScript: qual gerador funcionou
 
-O gerador novo `prisma-client` do Prisma 7 só gera TypeScript. Para manter todo o código em JavaScript usamos o gerador **`prisma-client-js`** sem `output` customizado, importando `import { PrismaClient } from "@prisma/client"`. Foi validado na versão 7.10.0 junto com o adapter `PrismaMariaDb` (cliente gerado dentro de `node_modules`, por isso o `postinstall` roda `prisma generate`). O `prisma generate` não depende do banco estar no ar.
+O gerador novo `prisma-client` do Prisma 7 só gera TypeScript. Para manter todo o código em JavaScript usamos o gerador **`prisma-client-js`** sem `output` customizado, importando `import { PrismaClient } from "@prisma/client"`. Foi validado na versão 7.10.0 junto com o adapter `PrismaPg` (cliente gerado dentro de `node_modules`, por isso o `postinstall` roda `prisma generate`). O `prisma generate` não depende do banco estar no ar.
 
 ## Pré-requisitos
 
 - **Node.js 22.12+** e npm
 - **Git**
-- **MySQL** instalado na máquina (MySQL Server, XAMPP ou Workbench). O XAMPP traz o MariaDB, compatível.
+- **PostgreSQL** para desenvolver: pode ser instalado na máquina (<https://www.postgresql.org/download/>) **ou** você usa direto um projeto gratuito do **Supabase** (veja `docs/DEPLOY.md`) também para desenvolver.
 
 ## Passo a passo
 
@@ -59,15 +59,15 @@ cd <pasta-do-repositorio>/backend
 npm ci
 ```
 
-**3. Criar o banco** (no MySQL, pelo terminal `mysql -u root -p` ou pelo Workbench):
+**3. Criar o banco.** Com PostgreSQL local, crie um banco vazio (pelo `psql` ou pgAdmin):
 
 ```sql
-CREATE DATABASE estoque CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE DATABASE estoque;
 ```
 
-A collation `utf8mb4_unicode_ci` faz a busca por texto ignorar maiúsculas/minúsculas.
+Com o Supabase o banco já existe (`postgres`); basta copiar a string de conexão (veja `docs/DEPLOY.md`).
 
-> O usuário do `.env` precisa ter permissão para **criar bancos**, porque o `prisma migrate dev` cria um *shadow database* temporário. O `root` local já pode. Para o `migrate deploy` (usado nos passos abaixo) não é necessário.
+> O usuário do `.env` precisa ter permissão para **criar bancos**, porque o `prisma migrate dev` cria um *shadow database* temporário (com `postgres` local já pode). Para o `migrate deploy` (usado nos passos abaixo) não é necessário.
 
 **4. Variáveis de ambiente:**
 
@@ -75,7 +75,7 @@ A collation `utf8mb4_unicode_ci` faz a busca por texto ignorar maiúsculas/minú
 cp .env.example .env        # PowerShell: Copy-Item .env.example .env
 ```
 
-Edite o `.env` (usuário e senha do MySQL em `DATABASE_URL`, no formato `mysql://usuario:senha@localhost:3306/estoque`). Para gerar um `JWT_SECRET` seguro (mínimo 32 caracteres em produção):
+Edite o `.env` (usuário e senha do PostgreSQL em `DATABASE_URL`, no formato `postgresql://usuario:senha@localhost:5432/estoque`). Para gerar um `JWT_SECRET` seguro (mínimo 32 caracteres em produção):
 
 ```bash
 node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"
@@ -97,15 +97,15 @@ npm start
 
 A API sobe em `http://localhost:3000` (variável `PORT`). Teste: `http://localhost:3000/api/health`.
 
-**Banco na nuvem:** coloque a URL no `DATABASE_URL` e use `DATABASE_SSL="true"` se o provedor exigir SSL.
+**Banco na nuvem (Supabase):** coloque a string de conexão no `DATABASE_URL` e use `DATABASE_SSL="true"`.
 
 ### Variáveis de ambiente
 
 | Variável | Descrição |
 |---|---|
-| `DATABASE_URL` | `mysql://usuario:senha@host:3306/banco` |
-| `DATABASE_SSL` | `true` para conexão com SSL (banco na nuvem) |
-| `DATABASE_SSL_CA` | opcional: certificado da CA do provedor (ex.: Aiven) |
+| `DATABASE_URL` | `postgresql://usuario:senha@host:5432/banco` |
+| `DATABASE_SSL` | `true` para conexão com SSL (Supabase exige) |
+| `DATABASE_SSL_CA` | opcional: certificado da CA do provedor (opcional; valida o certificado do servidor) |
 | `JWT_SECRET` | segredo do JWT (em produção, mínimo 32 caracteres) |
 | `JWT_EXPIRES_IN` | validade do token (padrão `2h`) |
 | `PORT` | porta do servidor (padrão `3000`) |
@@ -138,7 +138,7 @@ backend/src/
 ├── middlewares/            authenticate, authorize, validate, notFound, errorHandler
 ├── validators/             validação de dados escrita à mão
 ├── utils/                  AppError, serializers, assertOwnerOrAdmin
-└── lib/prisma.js           único PrismaClient, com adapter do MySQL
+└── lib/prisma.js           único PrismaClient, com adapter do PostgreSQL
 ```
 
 Fluxo: `rota -> middlewares (authenticate, validate) -> controller -> service -> model -> banco`.

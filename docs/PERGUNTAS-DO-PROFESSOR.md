@@ -83,7 +83,7 @@ Mostrar: `frontend/.env.example`, `backend/.env.example`, `.gitignore`.
 ## Banco de dados e Prisma
 
 **21. O que é o Prisma e o que mudou no Prisma 7?**
-ORM: escrevo `prisma.product.findMany(...)` em vez de SQL. No Prisma 7 o cliente usa um **driver adapter**: um driver JavaScript do banco; no meu caso `@prisma/adapter-mariadb` + `mariadb` (funciona com MySQL). A URL do banco foi para o `prisma.config.js`.
+ORM: escrevo `prisma.product.findMany(...)` em vez de SQL. No Prisma 7 o cliente usa um **driver adapter**: um driver JavaScript do banco; no meu caso `@prisma/adapter-pg` + `pg` (PostgreSQL). A URL do banco foi para o `prisma.config.js`.
 Mostrar: `backend/src/lib/prisma.js`, `backend/prisma.config.js`.
 
 **22. O que é uma migration? Qual a diferença entre `migrate dev` e `migrate deploy`?**
@@ -116,9 +116,9 @@ Mostrar: `schema.prisma` (`@@unique`) e `backend/src/middlewares/errorHandler.js
 Para manter o histórico confiável: todo ajuste é uma movimentação registrada (quem, quando, quanto). Por isso o PUT recusa o campo `quantity` (400).
 Mostrar: `backend/src/validators/index.js` (`validateUpdateProduct`).
 
-**30. Como a busca ignora maiúsculas/minúsculas no MySQL?**
-Pela *collation* `utf8mb4_unicode_ci` do banco; por isso o `contains` do Prisma já serve (o `mode: "insensitive"` não existe no MySQL).
-Mostrar: `productModel.js` e o `CREATE DATABASE` do README.
+**30. Como a busca ignora maiúsculas/minúsculas no PostgreSQL?**
+No PostgreSQL o `contains` diferencia maiúsculas; por isso uso `mode: "insensitive"` do Prisma, que gera `ILIKE`.
+Mostrar: `productModel.js` .
 
 ## Arquitetura do backend
 

@@ -9,18 +9,19 @@ export const productModel = {
     const where = {};
     if (ownerId !== undefined) where.ownerId = ownerId;
 
-    // No MySQL a collation utf8mb4_unicode_ci já ignora maiúsculas/minúsculas em "contains"
-    // (por isso não existe `mode: "insensitive"` aqui).
+    // No PostgreSQL o "contains" diferencia maiúsculas de minúsculas; `mode: "insensitive"` resolve (ILIKE).
     if (search) {
-      where.OR = [{ name: { contains: search } }, { sku: { contains: search } }, { category: { contains: search } }];
+      const contains = { contains: search, mode: "insensitive" };
+      where.OR = [{ name: contains }, { sku: contains }, { category: contains }];
     }
 
     // lowStock = quantity <= minStock. O Prisma não compara duas colunas no `where`,
     // então uma consulta SQL parametrizada busca os ids e depois filtramos por eles.
+    // No PostgreSQL, nomes de tabela/coluna com letra maiúscula precisam de aspas duplas.
     if (lowStock) {
       const rows = ownerId !== undefined
-        ? await prisma.$queryRaw(Prisma.sql`SELECT id FROM Product WHERE quantity <= minStock AND ownerId = ${ownerId}`)
-        : await prisma.$queryRaw(Prisma.sql`SELECT id FROM Product WHERE quantity <= minStock`);
+        ? await prisma.$queryRaw(Prisma.sql`SELECT id FROM "Product" WHERE quantity <= "minStock" AND "ownerId" = ${ownerId}`)
+        : await prisma.$queryRaw(Prisma.sql`SELECT id FROM "Product" WHERE quantity <= "minStock"`);
       where.id = { in: rows.map((r) => Number(r.id)) };
     }
 

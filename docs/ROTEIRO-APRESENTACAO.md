@@ -7,9 +7,9 @@ Aluno: THALES DE TARSIS CEZARE FILHO — 3º A TI. Texto em primeira pessoa, par
 - [ ] **Acordar a API no Render**: abrir `https://<minha-api>.onrender.com/api/health` e esperar `{"status":"ok"}` (pode levar ~1 minuto; fazer isso 5 minutos antes).
 - [ ] Ter o **admin** criado no banco de produção (`npm run seed:admin`, ver `docs/DEPLOY.md` seção D) e **dois usuários comuns** já cadastrados (A e B), cada um com 1–2 produtos; um deles com um produto de estoque baixo.
 - [ ] **Postman** aberto com a coleção `EstoqueFacil.postman_collection.json` importada e a variável `baseUrl` apontando para o ambiente que vou usar (local `http://localhost:3000` ou o Render).
-- [ ] **MySQL local rodando** (XAMPP: Start no MySQL) e `backend` rodando (`npm run dev`) para a parte do AV1; `npm run prisma:studio` pronto (abre em `http://localhost:5555`) ou MySQL Workbench conectado.
+- [ ] **Banco acessível** (PostgreSQL local rodando, ou o Supabase) e `backend` rodando (`npm run dev`) para a parte do AV1; `npm run prisma:studio` pronto (abre em `http://localhost:5555`) ou o **Table Editor** do Supabase aberto.
 - [ ] Abas abertas: site na Vercel, jwt.io, Postman, Prisma Studio, VS Code com a pasta do projeto.
-- [ ] **Plano B sem internet**: rodar tudo local — MySQL (XAMPP), `cd backend && npm run dev`, `cd frontend && npm run dev` e abrir `http://localhost:5173`. Ter o `docs/CHECKLIST-TESTE-MANUAL.md` e prints das telas como último recurso.
+- [ ] **Plano B sem internet**: rodar tudo local — PostgreSQL local (ou instalado antes), `cd backend && npm run dev`, `cd frontend && npm run dev` e abrir `http://localhost:5173`. Ter o `docs/CHECKLIST-TESTE-MANUAL.md` e prints das telas como último recurso.
 - [ ] Saber o login do admin e dos usuários A/B de cor (anotados fora do repositório).
 
 ---
@@ -20,7 +20,7 @@ Aluno: THALES DE TARSIS CEZARE FILHO — 3º A TI. Texto em primeira pessoa, par
 
 "Meu projeto se chama **EstoqueFácil**. É uma API para controlar estoque de pequenos comércios. O problema que resolvo: em planilha ninguém impede vender mais do que existe e não fica registro de quem mexeu. Na minha API o saldo **só muda por movimentações** de entrada e saída, e uma saída maior que o saldo é **bloqueada**."
 
-Tecnologias: Node.js + Express, Prisma 7.10.0, MySQL, JWT e bcrypt (`backend/package.json`).
+Tecnologias: Node.js + Express, Prisma 7.10.0, PostgreSQL (Supabase), JWT e bcrypt (`backend/package.json`).
 
 ## 2. Estrutura e modelagem (2 min)
 
@@ -37,7 +37,7 @@ Mostrar no VS Code:
 ## 3. CRUD e persistência (2 min)
 
 1. No Postman, rodar na pasta **Roteiro AV1**: `1. Health`, `2. Registro`, `3. Login` (guarda o token sozinho), `5. Criar produto`, `6. Listar`, `7. Atualizar`.
-2. Abrir o **Prisma Studio** (ou Workbench) e mostrar a tabela `Product` com a linha criada e a tabela `User` com o `passwordHash` começando com `$2b$10$` ("a senha nunca fica em texto puro").
+2. Abrir o **Prisma Studio** (ou o Table Editor do Supabase) e mostrar a tabela `Product` com a linha criada e a tabela `User` com o `passwordHash` começando com `$2b$10$` ("a senha nunca fica em texto puro").
 3. Atualizar no Postman e recarregar a tabela para ver a mudança; falar que o PUT com o campo `quantity` retorna 400 (o saldo só muda por movimentação).
 
 ## 4. Regra de negócio — aceita e bloqueada (2 min)
@@ -99,7 +99,7 @@ Mostrar no VS Code, em `frontend/src/`:
 
 ## 4. Fechamento (30 s)
 
-"Resumindo: API com MVC, JWT, regra de estoque atômica e banco MySQL com Prisma; frontend em React e Tailwind consumindo essa API, publicado na nuvem. Fico à disposição para perguntas."
+"Resumindo: API com MVC, JWT, regra de estoque atômica e banco PostgreSQL (Supabase) com Prisma; frontend em React e Tailwind consumindo essa API, publicado na nuvem. Fico à disposição para perguntas."
 
 ---
 

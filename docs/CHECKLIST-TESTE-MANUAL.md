@@ -1,6 +1,6 @@
 # Checklist de teste manual — EstoqueFácil
 
-Antes de começar: MySQL ligado, `backend` rodando (`npm run dev` em `backend/`, porta 3000) e `frontend` rodando (`npm run dev` em `frontend/`, abra <http://localhost:5173>). Tenha o admin criado com `npm run seed:admin`.
+Antes de começar: banco PostgreSQL acessível (local ou Supabase), `backend` rodando (`npm run dev` em `backend/`, porta 3000) e `frontend` rodando (`npm run dev` em `frontend/`, abra <http://localhost:5173>). Tenha o admin criado com `npm run seed:admin`.
 
 ## Cadastro e login
 - [ ] Abrir `/register`, enviar vazio e ver as mensagens de campo obrigatório.

@@ -5,7 +5,7 @@ Objetivo: entender e saber explicar tudo. Caminhos são a partir da raiz do repo
 ## Visão geral
 
 ```
-backend/   API (Node + Express + Prisma + MySQL)
+backend/   API (Node + Express + Prisma + PostgreSQL)
 frontend/  Interface (React + Vite + Tailwind)
 tools/     smoke-test.mjs (testa a API) e check-pins.mjs (confere versões)
 docs/      documentação
@@ -39,14 +39,14 @@ Lê as variáveis (`dotenv`) e **valida na partida**: falta `DATABASE_URL` ou `J
 
 ## `src/lib/prisma.js` e `src/lib/dbConfig.js`
 
-No Prisma 7 o cliente conversa com o banco por um **driver adapter**. Para MySQL uso `@prisma/adapter-mariadb` (que usa o driver `mariadb`):
+No Prisma 7 o cliente conversa com o banco por um **driver adapter**. Para PostgreSQL uso `@prisma/adapter-pg` (que usa o driver `pg`):
 
 ```js
-const adapter = new PrismaMariaDb(buildDbConfig(env.DATABASE_URL, env.DATABASE_SSL, env.DATABASE_SSL_CA));
+const adapter = new PrismaPg(buildDbConfig(env.DATABASE_URL, env.DATABASE_SSL, env.DATABASE_SSL_CA));
 export const prisma = new PrismaClient({ adapter });
 ```
 
-`dbConfig.js` desmonta a `DATABASE_URL` com `new URL(...)` (host, porta, usuário, senha, banco) e, se `DATABASE_SSL=true`, liga o TLS. Existe **um único** `prisma` reaproveitado por todo o app.
+`dbConfig.js` desmonta a `DATABASE_URL` com `new URL(...)` (host, porta, usuário, senha, banco) e, se `DATABASE_SSL=true`, liga o SSL (o Supabase exige). Existe **um único** `prisma` reaproveitado por todo o app.
 
 ## `src/routes/index.js`
 
@@ -79,7 +79,7 @@ if (count !== 1) { ... throw AppError.insufficientStock(current.quantity, input.
 
 ## Models (`src/models/`)
 
-`userModel.js`, `productModel.js`, `movementModel.js`: **os únicos arquivos que chamam o Prisma** (`prisma.user.findUnique(...)`). Recebem um parâmetro `db` opcional para funcionar dentro de uma transação. No `list` de produtos: a busca usa `contains` (no MySQL a collation `utf8mb4_unicode_ci` ignora maiúsculas) e o filtro de estoque baixo usa `$queryRaw` parametrizado (`quantity <= minStock`), porque o Prisma não compara duas colunas no `where`.
+`userModel.js`, `productModel.js`, `movementModel.js`: **os únicos arquivos que chamam o Prisma** (`prisma.user.findUnique(...)`). Recebem um parâmetro `db` opcional para funcionar dentro de uma transação. No `list` de produtos: a busca usa `contains` com `mode: "insensitive"` (no PostgreSQL vira ILIKE) e o filtro de estoque baixo usa `$queryRaw` parametrizado (`quantity <= "minStock"`, com aspas porque o PostgreSQL diferencia maiúsculas nos nomes), porque o Prisma não compara duas colunas no `where`.
 
 ## Middlewares (`src/middlewares/`)
 
@@ -176,7 +176,7 @@ Em vez de escrever CSS, coloco classes no elemento: `className="rounded-md bg-te
 2. **`AuthContext.login`** → `authApi.login` → **`api/client.js` `request("/auth/login", POST)`**: o navegador envia `POST {VITE_API_URL}/auth/login` com o JSON. Como o site e a API são origens diferentes, antes vai um pedido **OPTIONS** (pré-voo do CORS).
 3. **`app.js`**: `cors` confere se a origem do site está em `CORS_ORIGIN`; `express.json()` lê o corpo.
 4. **`routes/index.js`**: `/auth/login` → `validate("body", validateLogin)` (e-mail válido? senha preenchida?) → `authController.login`.
-5. **`authController.login`** → **`authService.login`**: `userModel.findByEmail(email)` → `prisma.user.findUnique(...)` → **adapter MariaDB** → **MySQL** devolve o usuário. `bcrypt.compare(senha, passwordHash)`. Se falhar: `AppError 401 INVALID_CREDENTIALS` (mensagem genérica). Se passar: `jwt.sign({ sub: id, role }, JWT_SECRET, { expiresIn: "2h" })`.
+5. **`authController.login`** → **`authService.login`**: `userModel.findByEmail(email)` → `prisma.user.findUnique(...)` → **adapter PostgreSQL** → **PostgreSQL** devolve o usuário. `bcrypt.compare(senha, passwordHash)`. Se falhar: `AppError 401 INVALID_CREDENTIALS` (mensagem genérica). Se passar: `jwt.sign({ sub: id, role }, JWT_SECRET, { expiresIn: "2h" })`.
 6. **Resposta** `200 { token, user }` (o `user` passa por `serializeUser`, sem `passwordHash`).
 7. **De volta ao front**: `AuthContext.login` guarda o token com `setToken` (`localStorage`) e o usuário em estado. `PublicOnlyRoute` vê que há usuário e redireciona para `/products` (ou a página de origem). A tela de produtos chama `GET /products` já com o cabeçalho `Authorization`.
 
