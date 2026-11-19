@@ -32,6 +32,10 @@ Aluno: THALES DE TARSIS CEZARE FILHO, 3º A TI. Tema: controle de estoque.
 - Componentes adaptados do HyperUI (MIT) documentados em `docs/FONTES-COMPONENTES.md`; login/cadastro são próprios (o HyperUI não tem a categoria). Checklist manual em `docs/CHECKLIST-TESTE-MANUAL.md`.
 - Regras do react-hooks v7 do ESLint: sem setState síncrono em effect (por isso o `useApi` deriva o "carregando" pela chave).
 
+## Publicação (docs/DEPLOY.md)
+- Render (Root `backend`): Build `npm ci --include=dev && npx prisma generate && npx prisma migrate deploy`, Start `npm start`, Health `/api/health`; Vercel (Root `frontend`, `VITE_API_URL=https://<render>/api`, `vercel.json` com rewrite de SPA). Banco: TiDB Cloud Starter, Aiven ou MySQL da hospedagem; `DATABASE_SSL=true` (+ `DATABASE_SSL_CA` se CA própria). ADMIN criado localmente com `seed:admin` passando variáveis só no comando.
+- `CORS_ORIGIN` aceita lista e ignora barra final. Material de apresentação e auditoria em `docs/` (ROTEIRO-APRESENTACAO, GUIA-DO-CODIGO, PERGUNTAS-DO-PROFESSOR, AUDITORIA). O arquivo do ENUNCIADO não está no repo: AUDITORIA usa requisitos reconstruídos.
+
 ## Comandos
 Em `backend/`: `npm ci`, `npm run dev` (node --watch), `npm start`, `npm run seed:admin`, `npm run prisma:generate`, `npm run prisma:migrate`, `npm run prisma:deploy`, `npm run prisma:studio`.
 Em `frontend/`: `npm ci`, `npm run dev` (porta 5173), `npm run build`, `npm run lint`, `npm run preview`.

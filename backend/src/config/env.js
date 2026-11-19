@@ -33,6 +33,7 @@ export const env = {
   PORT,
   DATABASE_URL,
   DATABASE_SSL: process.env.DATABASE_SSL === "true",
+  DATABASE_SSL_CA: process.env.DATABASE_SSL_CA || "", // opcional: certificado da CA do provedor
   JWT_SECRET,
   JWT_EXPIRES_IN: process.env.JWT_EXPIRES_IN || "2h",
 };
@@ -41,7 +42,7 @@ export const env = {
 export const corsOrigins = [
   ...(process.env.CORS_ORIGIN || "")
     .split(",")
-    .map((o) => o.trim())
+    .map((o) => o.trim().replace(/\/+$/, "")) // tira a barra final: o navegador envia a origem sem ela
     .filter(Boolean),
   ...(NODE_ENV !== "production" ? ["http://localhost:5173"] : []),
 ];

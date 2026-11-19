@@ -116,6 +116,7 @@ A API sobe em `http://localhost:3000` (variável `PORT`). Teste: `http://localho
 |---|---|
 | `DATABASE_URL` | `mysql://usuario:senha@host:3306/banco` |
 | `DATABASE_SSL` | `true` para conexão com SSL (banco na nuvem) |
+| `DATABASE_SSL_CA` | opcional: certificado da CA do provedor (ex.: Aiven) |
 | `JWT_SECRET` | segredo do JWT (em produção, mínimo 32 caracteres) |
 | `JWT_EXPIRES_IN` | validade do token (padrão `2h`) |
 | `PORT` | porta do servidor (padrão `3000`) |
@@ -305,6 +306,12 @@ Estrutura de `frontend/src/`: `api/` (cliente `fetch`), `components/ui` (Button,
 Telas: login, cadastro, lista de produtos (resumo, busca, filtro de estoque baixo, criar/editar/excluir) e detalhe do produto (saldo, entradas/saídas e histórico). A sessão fica no `localStorage` (`estoque.token`); token inválido ou vencido leva ao login com o aviso "Sua sessão expirou."
 
 Componentes baseados no HyperUI (MIT): veja [docs/FONTES-COMPONENTES.md](docs/FONTES-COMPONENTES.md). Roteiro de teste no navegador: [docs/CHECKLIST-TESTE-MANUAL.md](docs/CHECKLIST-TESTE-MANUAL.md).
+
+## Publicação e apresentação
+
+- [docs/DEPLOY.md](docs/DEPLOY.md): passo a passo para publicar (GitHub, MySQL na nuvem, Render, Vercel).
+- [docs/ROTEIRO-APRESENTACAO.md](docs/ROTEIRO-APRESENTACAO.md), [docs/GUIA-DO-CODIGO.md](docs/GUIA-DO-CODIGO.md) e [docs/PERGUNTAS-DO-PROFESSOR.md](docs/PERGUNTAS-DO-PROFESSOR.md): material para a apresentação.
+- [docs/AUDITORIA.md](docs/AUDITORIA.md): conferência dos requisitos.
 
 ## Segurança
 

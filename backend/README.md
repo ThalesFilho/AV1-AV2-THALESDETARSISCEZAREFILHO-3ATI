@@ -105,6 +105,7 @@ A API sobe em `http://localhost:3000` (variável `PORT`). Teste: `http://localho
 |---|---|
 | `DATABASE_URL` | `mysql://usuario:senha@host:3306/banco` |
 | `DATABASE_SSL` | `true` para conexão com SSL (banco na nuvem) |
+| `DATABASE_SSL_CA` | opcional: certificado da CA do provedor (ex.: Aiven) |
 | `JWT_SECRET` | segredo do JWT (em produção, mínimo 32 caracteres) |
 | `JWT_EXPIRES_IN` | validade do token (padrão `2h`) |
 | `PORT` | porta do servidor (padrão `3000`) |
