@@ -1,0 +1,63 @@
+// Esquema do banco do EstoqueFácil (Prisma 7).
+// A URL do banco NÃO fica aqui: ela vem do prisma.config.ts (variável DATABASE_URL).
+
+generator client {
+  provider            = "prisma-client"
+  output              = "../src/generated/prisma"
+  moduleFormat        = "esm"
+  importFileExtension = "js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum MovementType {
+  ENTRY
+  EXIT
+}
+
+model User {
+  id           Int             @id @default(autoincrement())
+  name         String
+  email        String          @unique
+  passwordHash String
+  role         Role            @default(USER)
+  createdAt    DateTime        @default(now())
+  products     Product[]
+  movements    StockMovement[]
+}
+
+model Product {
+  id        Int             @id @default(autoincrement())
+  name      String
+  sku       String
+  category  String
+  unitPrice Decimal         @db.Decimal(10, 2)
+  minStock  Int             @default(0)
+  quantity  Int             @default(0)
+  ownerId   Int
+  owner     User            @relation(fields: [ownerId], references: [id])
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+  movements StockMovement[]
+
+  @@unique([ownerId, sku])
+}
+
+model StockMovement {
+  id        Int          @id @default(autoincrement())
+  type      MovementType
+  quantity  Int
+  note      String?
+  productId Int
+  product   Product      @relation(fields: [productId], references: [id], onDelete: Cascade)
+  userId    Int
+  user      User         @relation(fields: [userId], references: [id])
+  createdAt DateTime     @default(now())
+}

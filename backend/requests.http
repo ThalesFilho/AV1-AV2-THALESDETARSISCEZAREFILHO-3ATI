@@ -1,0 +1,87 @@
+# Requisições para a extensão "REST Client" do VS Code (ou o HTTP Client do JetBrains).
+# Execute na ordem: o login guarda o token em {{token}} e a criação guarda o id em {{productId}}.
+
+@baseUrl = http://localhost:3000
+@email = aluno@teste.com
+@password = SenhaForte123
+
+### Health
+GET {{baseUrl}}/api/health
+
+### Registro
+POST {{baseUrl}}/api/auth/register
+Content-Type: application/json
+
+{ "name": "Aluno Teste", "email": "{{email}}", "password": "{{password}}" }
+
+### Login
+# @name login
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{ "email": "{{email}}", "password": "{{password}}" }
+
+###
+@token = {{login.response.body.token}}
+
+### Quem sou eu
+GET {{baseUrl}}/api/auth/me
+Authorization: Bearer {{token}}
+
+### Listar SEM token (espera 401)
+GET {{baseUrl}}/api/products
+
+### Criar produto
+# @name createProduct
+POST {{baseUrl}}/api/products
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{ "name": "Caneta Azul", "sku": "can-001", "category": "Papelaria", "unitPrice": 2.5, "minStock": 5 }
+
+###
+@productId = {{createProduct.response.body.product.id}}
+
+### Listar (com busca e estoque baixo)
+GET {{baseUrl}}/api/products?search=caneta&lowStock=true
+Authorization: Bearer {{token}}
+
+### Buscar por id
+GET {{baseUrl}}/api/products/{{productId}}
+Authorization: Bearer {{token}}
+
+### Atualizar (enviar "quantity" aqui retorna 400)
+PUT {{baseUrl}}/api/products/{{productId}}
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{ "name": "Caneta Azul 0.7", "unitPrice": 2.9 }
+
+### Entrada de 10
+POST {{baseUrl}}/api/products/{{productId}}/movements
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{ "type": "ENTRY", "quantity": 10, "note": "Compra inicial" }
+
+### Saída de 3 (aceita)
+POST {{baseUrl}}/api/products/{{productId}}/movements
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{ "type": "EXIT", "quantity": 3 }
+
+### Saída de 50 (bloqueada: 422 INSUFFICIENT_STOCK)
+POST {{baseUrl}}/api/products/{{productId}}/movements
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{ "type": "EXIT", "quantity": 50 }
+
+### Histórico de movimentações
+GET {{baseUrl}}/api/products/{{productId}}/movements
+Authorization: Bearer {{token}}
+
+### Apagar produto (204)
+DELETE {{baseUrl}}/api/products/{{productId}}
+Authorization: Bearer {{token}}
