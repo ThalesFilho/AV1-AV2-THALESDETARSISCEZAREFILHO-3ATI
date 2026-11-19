@@ -17,7 +17,7 @@ O **EstoqueFácil** é uma API REST que resolve isso:
 - o produto informa `lowStock` quando `quantidade <= estoque mínimo`;
 - login com **JWT** e senhas com **hash (bcrypt)**; um usuário comum só enxerga os próprios dados, e o **ADMIN** enxerga tudo.
 
-O repositório é um monorepo: `backend/` (AV1), `frontend/` (AV2, React + Tailwind, ainda não criado), `tools/` (scripts de apoio) e `docs/`.
+O repositório é um monorepo: `backend/` (AV1), `frontend/` (AV2, React + Tailwind), `tools/` (scripts de apoio) e `docs/`.
 
 ## Tecnologias e versões
 
@@ -36,7 +36,18 @@ Backend 100% em **JavaScript** (sem TypeScript).
 | cors | 2.8.6 | CORS |
 | dotenv | 18.0.10 | variáveis de ambiente |
 
-Frontend (AV2): React + Tailwind CSS **4.3.0** (exata). As versões travadas são conferidas por `node tools/check-pins.mjs`.
+Frontend (AV2), em JavaScript/JSX:
+
+| Tecnologia | Versão | Uso |
+|---|---|---|
+| React / React DOM | 19.3.1 | interface |
+| react-router-dom | 7.18.6 | rotas |
+| Vite | 8.3.8 | servidor de desenvolvimento e build |
+| @vitejs/plugin-react | 6.3.0 | compilar React no Vite |
+| Tailwind CSS + @tailwindcss/vite | **4.3.0** (exata) | estilos |
+| ESLint (+ plugins react-hooks e react-refresh) | 10.15.0 | análise de código |
+
+Requisições com `fetch` nativo; sem axios, bibliotecas de UI, ícones ou formulários. As versões travadas são conferidas por `node tools/check-pins.mjs`.
 
 ### Prisma 7 em JavaScript: qual gerador funcionou
 
@@ -264,6 +275,36 @@ node tools/check-pins.mjs
 ```
 
 Falha (código 1) se Prisma/adapter não estiverem exatamente em 7.10.0 no backend, ou, no frontend (quando existir), Tailwind em 4.3.0 — conferindo `package.json` e `package-lock.json`.
+
+## Frontend (AV2)
+
+Interface React integrada à API, em `frontend/`.
+
+```bash
+cd frontend
+npm ci
+cp .env.example .env     # PowerShell: Copy-Item .env.example .env
+npm run dev              # http://localhost:5173 (a API deve estar em http://localhost:3000)
+```
+
+| Variável | Descrição |
+|---|---|
+| `VITE_API_URL` | URL base da API (padrão `http://localhost:3000/api`). Só essa variável; nunca coloque segredos aqui. |
+
+| Comando | O que faz |
+|---|---|
+| `npm run dev` | servidor de desenvolvimento do Vite |
+| `npm run build` | gera a versão de produção em `dist/` |
+| `npm run preview` | serve o build gerado |
+| `npm run lint` | ESLint |
+
+Para o navegador acessar a API, o `CORS_ORIGIN` do backend deve incluir a origem do frontend (em desenvolvimento `http://localhost:5173` já é permitido).
+
+Estrutura de `frontend/src/`: `api/` (cliente `fetch`), `components/ui` (Button, Input, Modal, Toast...), `components/layout` (navbar, rodapé), `components/products`, `context/` (autenticação e avisos), `pages/`, `routes/` (rotas protegidas) e `utils/`.
+
+Telas: login, cadastro, lista de produtos (resumo, busca, filtro de estoque baixo, criar/editar/excluir) e detalhe do produto (saldo, entradas/saídas e histórico). A sessão fica no `localStorage` (`estoque.token`); token inválido ou vencido leva ao login com o aviso "Sua sessão expirou."
+
+Componentes baseados no HyperUI (MIT): veja [docs/FONTES-COMPONENTES.md](docs/FONTES-COMPONENTES.md). Roteiro de teste no navegador: [docs/CHECKLIST-TESTE-MANUAL.md](docs/CHECKLIST-TESTE-MANUAL.md).
 
 ## Segurança
 

@@ -4,7 +4,7 @@ Aluno: THALES DE TARSIS CEZARE FILHO, 3º A TI. Tema: controle de estoque.
 
 ## REGRA Nº 1 — Stack permitida (e somente ela)
 - Backend: Node.js em **JavaScript puro**, Express, Prisma 7.10.0, **MySQL**, JWT, hash de senha.
-- Frontend (próximo prompt): React + Tailwind CSS 4.3.0.
+- Frontend: React + Vite em JavaScript/JSX + Tailwind CSS 4.3.0. Dependências permitidas: react, react-dom, react-router-dom, vite, @vitejs/plugin-react, tailwindcss e @tailwindcss/vite (4.3.0 exatos), ESLint do template. Proibido: TypeScript, axios, bibliotecas de UI/ícones/formulários/toasts/datas. Requisições com `fetch` nativo.
 - Dependências do backend: express, cors, dotenv, jsonwebtoken, bcryptjs, @prisma/client (7.10.0), @prisma/adapter-mariadb (7.10.0), mariadb; dev: apenas prisma (7.10.0). Nada além disso (pacotes extras exigidos oficialmente pelo Prisma devem ser instalados na versão exata e avisados ao aluno).
 - PROIBIDO (não reintroduzir): TypeScript/tsx/ts-node, PostgreSQL e seus drivers, Docker, zod, helmet, nodemon, express-validator, joi, axios e qualquer outra biblioteca. Validação é escrita à mão.
 
@@ -25,8 +25,16 @@ Aluno: THALES DE TARSIS CEZARE FILHO, 3º A TI. Tema: controle de estoque.
 - Regra de negócio: EXIT > saldo => 422 "Estoque insuficiente: disponível X, solicitado Y."; atômica com `updateMany where quantity >= q` dentro de `$transaction`.
 - Variáveis: DATABASE_URL (mysql://usuario:senha@host:3306/banco), DATABASE_SSL, JWT_SECRET, JWT_EXPIRES_IN, PORT, NODE_ENV, CORS_ORIGIN, ADMIN_NAME, ADMIN_EMAIL, ADMIN_PASSWORD.
 
+## Frontend (frontend/, AV2 — pronto)
+- Vite 8 + plugin-react 6 (compatível com os peers de @tailwindcss/vite 4.3.0); `@import "tailwindcss";` em `src/index.css`, sem tailwind.config/postcss. Só `VITE_API_URL` (.env.example versionado).
+- `src/`: `api/` (client.js: fetch, Bearer do localStorage `estoque.token`, ApiError, evento `auth:expired` em 401 e `api:forbidden` em 403, timeout 15s), `components/{ui,layout,products}`, `context/` (AuthContext, ToastContext; objetos de contexto em `authContext.js`/`toastContext.js` por causa do react-refresh), `pages/`, `routes/` (ProtectedRoute guarda `state.from`; PublicOnlyRoute redireciona de volta), `utils/` (`useApi` com cancelamento, `useDebounce`, format).
+- Cor primária teal. Saída excedente NÃO é bloqueada no cliente (mostra a mensagem 422 do backend). Editar/excluir/movimentar só para ADMIN ou dono, complementando o backend.
+- Componentes adaptados do HyperUI (MIT) documentados em `docs/FONTES-COMPONENTES.md`; login/cadastro são próprios (o HyperUI não tem a categoria). Checklist manual em `docs/CHECKLIST-TESTE-MANUAL.md`.
+- Regras do react-hooks v7 do ESLint: sem setState síncrono em effect (por isso o `useApi` deriva o "carregando" pela chave).
+
 ## Comandos
 Em `backend/`: `npm ci`, `npm run dev` (node --watch), `npm start`, `npm run seed:admin`, `npm run prisma:generate`, `npm run prisma:migrate`, `npm run prisma:deploy`, `npm run prisma:studio`.
+Em `frontend/`: `npm ci`, `npm run dev` (porta 5173), `npm run build`, `npm run lint`, `npm run preview`.
 Na raiz: `node tools/check-pins.mjs`, `node tools/smoke-test.mjs` (BASE_URL, ADMIN_EMAIL, ADMIN_PASSWORD, JWT_SECRET opcionais).
 Postman: `backend/postman/EstoqueFacil.postman_collection.json`; REST Client: `backend/requests.http`.
 Banco local: `CREATE DATABASE estoque CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;` (o usuário precisa poder criar o shadow database no `migrate dev`).
