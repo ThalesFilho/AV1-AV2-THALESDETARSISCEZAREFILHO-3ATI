@@ -2,12 +2,11 @@ import { productModel } from "../models/productModel.js";
 import { movementModel } from "../models/movementModel.js";
 import { runInTransaction } from "../models/transaction.js";
 import { AppError } from "../utils/AppError.js";
-import type { AuthUser } from "../utils/assertOwnerOrAdmin.js";
 import { serializeMovement, serializeProduct } from "../utils/serializers.js";
 import { getAuthorizedProduct } from "./productService.js";
 
 export const movementService = {
-  async register(user: AuthUser, productId: number, input: { type: "ENTRY" | "EXIT"; quantity: number; note?: string }) {
+  async register(user, productId, input) {
     await getAuthorizedProduct(user, productId); // 404 antes de 403
 
     const { movement, product } = await runInTransaction(async (tx) => {
@@ -29,13 +28,13 @@ export const movementService = {
       }
       const movement = await movementModel.create({ ...input, productId, userId: user.id }, tx);
       const product = await productModel.findById(productId, tx);
-      return { movement, product: product! };
+      return { movement, product };
     });
 
     return { movement: serializeMovement(movement), product: serializeProduct(product, user.role === "ADMIN") };
   },
 
-  async list(user: AuthUser, productId: number) {
+  async list(user, productId) {
     await getAuthorizedProduct(user, productId);
     const movements = await movementModel.listByProduct(productId);
     return movements.map(serializeMovement);

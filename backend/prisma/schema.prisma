@@ -1,15 +1,12 @@
-// Esquema do banco do EstoqueFácil (Prisma 7).
-// A URL do banco NÃO fica aqui: ela vem do prisma.config.ts (variável DATABASE_URL).
+// Esquema do banco do EstoqueFácil (Prisma 7 + MySQL).
+// A URL do banco NÃO fica aqui: ela vem do prisma.config.js (variável DATABASE_URL).
 
 generator client {
-  provider            = "prisma-client"
-  output              = "../src/generated/prisma"
-  moduleFormat        = "esm"
-  importFileExtension = "js"
+  provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "mysql"
 }
 
 enum Role {

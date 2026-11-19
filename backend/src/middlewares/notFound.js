@@ -1,5 +1,3 @@
-import type { Request, Response } from "express";
-
-export function notFound(req: Request, res: Response) {
+export function notFound(req, res) {
   res.status(404).json({ error: { code: "NOT_FOUND", message: `Rota não encontrada: ${req.method} ${req.path}` } });
 }

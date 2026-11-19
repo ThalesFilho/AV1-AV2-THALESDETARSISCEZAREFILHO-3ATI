@@ -1,5 +1,5 @@
 // Confere se as versões "travadas" estão EXATAS no package.json e no package-lock.json.
-//   backend : prisma, @prisma/client, @prisma/adapter-pg  => 7.10.0
+//   backend : prisma, @prisma/client, @prisma/adapter-mariadb  => 7.10.0
 //   frontend: tailwindcss e todo @tailwindcss/*           => 4.3.0
 // Pastas sem package.json são ignoradas. Sai com código 1 se algo estiver errado.
 import fs from "node:fs";
@@ -62,7 +62,7 @@ function checkFolder(folder, expected, matches) {
   }
 }
 
-checkFolder("backend", "7.10.0", (n) => n === "prisma" || n === "@prisma/client" || n === "@prisma/adapter-pg");
+checkFolder("backend", "7.10.0", (n) => n === "prisma" || n === "@prisma/client" || n === "@prisma/adapter-mariadb");
 checkFolder("frontend", "4.3.0", (n) => n === "tailwindcss" || n.startsWith("@tailwindcss/"));
 
 if (errors) {

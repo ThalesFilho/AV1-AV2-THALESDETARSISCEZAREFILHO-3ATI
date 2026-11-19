@@ -7,7 +7,7 @@ Projeto da disciplina **DSW** (AV1 + AV2)
 
 ## Problema e solução
 
-Pequenos comércios controlam o estoque em planilhas ou no papel. Isso gera erros: produto vendido sem ter saldo, falta de aviso quando o estoque está acabando e nenhuma história de quem mexeu em quê.
+Pequenos comércios controlam o estoque em planilhas ou no papel. Isso gera erros: produto vendido sem ter saldo, falta de aviso quando o estoque está acabando e nenhum histórico de quem mexeu em quê.
 
 O **EstoqueFácil** é uma API REST que resolve isso:
 
@@ -15,61 +15,74 @@ O **EstoqueFácil** é uma API REST que resolve isso:
 - o saldo do produto **nunca é editado direto**: só muda por **movimentações** de entrada (`ENTRY`) e saída (`EXIT`), que ficam gravadas como histórico;
 - uma **saída maior que o saldo é bloqueada** (erro 422), mesmo que várias saídas cheguem ao mesmo tempo;
 - o produto informa `lowStock` quando `quantidade <= estoque mínimo`;
-- login com **JWT**, senhas com **hash (bcrypt)**; um usuário comum só enxerga os próprios dados, e o **ADMIN** enxerga tudo.
+- login com **JWT** e senhas com **hash (bcrypt)**; um usuário comum só enxerga os próprios dados, e o **ADMIN** enxerga tudo.
 
-Este é o README do backend. O README da raiz do repositório traz a visão geral do monorepo (`backend/`, `frontend/`, `tools/`, `docs/`).
+Este é o README do backend (AV1). O README da raiz traz a visão geral do monorepo (`backend/`, `frontend/`, `tools/`, `docs/`).
 
 ## Tecnologias e versões
 
+Backend 100% em **JavaScript** (sem TypeScript).
+
 | Tecnologia | Versão | Uso |
 |---|---|---|
-| Node.js | 24.x (testado com 24.16; mínimo exigido pelo Prisma 7: 20.19+) | execução |
-| TypeScript | 7.0.2 | linguagem |
+| Node.js | 22.12 ou superior (mínimo do Prisma 7.10; testado com 24.16) | execução (módulos ESM) |
 | Express | 5.3.0 | servidor HTTP e rotas |
 | Prisma (`prisma` + `@prisma/client`) | **7.10.0** (exata) | ORM e migrations |
-| `@prisma/adapter-pg` + `pg` | **7.10.0** (exata) / 8.23.1 | conexão com o PostgreSQL |
-| PostgreSQL | 16 | banco de dados |
-| zod | 4.6.7 | validação de entrada |
+| `@prisma/adapter-mariadb` | **7.10.0** (exata) | adapter do Prisma para MySQL |
+| mariadb | 3.5.5 | driver usado pelo adapter |
+| MySQL | 8 (ou MariaDB/XAMPP) | banco de dados |
 | jsonwebtoken | 9.0.3 | autenticação JWT |
 | bcryptjs | 3.0.3 | hash de senhas |
-| helmet / cors | 8.3.0 / 2.8.6 | segurança HTTP |
+| cors | 2.8.6 | CORS |
 | dotenv | 18.0.10 | variáveis de ambiente |
-| tsx | 4.23.15 | executar TypeScript em desenvolvimento |
 
-> As versões do Prisma são **exatas** (sem `^` ou `~`) e conferidas por `node ../tools/check-pins.mjs`.
+Frontend (AV2): React + Tailwind CSS **4.3.0** (exata). As versões travadas são conferidas por `node ../tools/check-pins.mjs`.
+
+### Prisma 7 em JavaScript: qual gerador funcionou
+
+O gerador novo `prisma-client` do Prisma 7 só gera TypeScript. Para manter todo o código em JavaScript usamos o gerador **`prisma-client-js`** sem `output` customizado, importando `import { PrismaClient } from "@prisma/client"`. Foi validado na versão 7.10.0 junto com o adapter `PrismaMariaDb` (cliente gerado dentro de `node_modules`, por isso o `postinstall` roda `prisma generate`). O `prisma generate` não depende do banco estar no ar.
 
 ## Pré-requisitos
 
-- Node.js 20.19 ou superior e npm
-- Git
-- PostgreSQL 16 — pode ser pelo **Docker** (`docker-compose.yml` na raiz do repositório) ou um banco gratuito no **Neon** (veja abaixo)
+- **Node.js 22.12+** e npm
+- **Git**
+- **MySQL** instalado na máquina (MySQL Server, XAMPP ou Workbench). O XAMPP traz o MariaDB, compatível.
 
 ## Passo a passo
 
 ```bash
 # 1. Clonar
 git clone <url-do-repositorio>
-cd <pasta-do-repositorio>
+cd <pasta-do-repositorio>/backend
 
-# 2. Banco de dados local (Docker)
-docker compose up -d
-
-# 3. Instalar dependências (usa o package-lock.json; o postinstall já roda `prisma generate`)
-cd backend
+# 2. Instalar dependências (usa o package-lock.json; o postinstall já roda `prisma generate`)
 npm ci
-
-# 4. Variáveis de ambiente
-cp .env.example .env        # no Windows (PowerShell): Copy-Item .env.example .env
 ```
 
-Edite o `.env`. Para gerar um `JWT_SECRET` seguro (mínimo 32 caracteres):
+**3. Criar o banco** (no MySQL, pelo terminal `mysql -u root -p` ou pelo Workbench):
+
+```sql
+CREATE DATABASE estoque CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+```
+
+A collation `utf8mb4_unicode_ci` faz a busca por texto ignorar maiúsculas/minúsculas.
+
+> O usuário do `.env` precisa ter permissão para **criar bancos**, porque o `prisma migrate dev` cria um *shadow database* temporário. O `root` local já pode. Para o `migrate deploy` (usado nos passos abaixo) não é necessário.
+
+**4. Variáveis de ambiente:**
+
+```bash
+cp .env.example .env        # PowerShell: Copy-Item .env.example .env
+```
+
+Edite o `.env` (usuário e senha do MySQL em `DATABASE_URL`, no formato `mysql://usuario:senha@localhost:3306/estoque`). Para gerar um `JWT_SECRET` seguro (mínimo 32 caracteres em produção):
 
 ```bash
 node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"
 ```
 
 ```bash
-# 5. Criar as tabelas no banco (aplica prisma/migrations)
+# 5. Criar as tabelas (aplica prisma/migrations)
 npm run prisma:deploy
 
 # 6. Criar o usuário ADMIN (usa ADMIN_NAME, ADMIN_EMAIL e ADMIN_PASSWORD do .env)
@@ -79,19 +92,19 @@ npm run seed:admin
 npm run dev
 
 # 7b. Produção
-npm run build
 npm start
 ```
 
 A API sobe em `http://localhost:3000` (variável `PORT`). Teste: `http://localhost:3000/api/health`.
 
-**Sem Docker?** Crie um projeto gratuito em <https://neon.tech>, copie a *connection string* e coloque no `DATABASE_URL` do `.env` (ex.: `postgresql://usuario:senha@host/db?sslmode=require`). Use um banco de desenvolvimento, não o de produção.
+**Banco na nuvem:** coloque a URL no `DATABASE_URL` e use `DATABASE_SSL="true"` se o provedor exigir SSL.
 
 ### Variáveis de ambiente
 
 | Variável | Descrição |
 |---|---|
-| `DATABASE_URL` | URL de conexão do PostgreSQL |
+| `DATABASE_URL` | `mysql://usuario:senha@host:3306/banco` |
+| `DATABASE_SSL` | `true` para conexão com SSL (banco na nuvem) |
 | `JWT_SECRET` | segredo do JWT (em produção, mínimo 32 caracteres) |
 | `JWT_EXPIRES_IN` | validade do token (padrão `2h`) |
 | `PORT` | porta do servidor (padrão `3000`) |
@@ -103,32 +116,32 @@ A API sobe em `http://localhost:3000` (variável `PORT`). Teste: `http://localho
 
 | Comando | O que faz |
 |---|---|
-| `npm run dev` | servidor em modo desenvolvimento (`tsx watch`) |
-| `npm run build` | `prisma generate` + compila o TypeScript para `dist/` |
-| `npm start` | roda `dist/server.js` |
+| `npm run dev` | servidor em desenvolvimento (`node --watch`) |
+| `npm start` | servidor (`node src/server.js`) |
 | `npm run seed:admin` | cria/promove o ADMIN (idempotente; não imprime a senha) |
+| `npm run prisma:generate` | gera o Prisma Client |
 | `npm run prisma:migrate` | cria nova migration em desenvolvimento (`migrate dev`) |
-| `npm run prisma:deploy` | aplica migrations existentes (`migrate deploy`) |
+| `npm run prisma:deploy` | aplica as migrations existentes (`migrate deploy`) |
 | `npm run prisma:studio` | interface visual do banco |
 
 ## Arquitetura MVC
 
 ```
 backend/src/
-├── server.ts / app.ts      inicialização e configuração do Express
-├── config/env.ts           variáveis de ambiente validadas com zod
-├── routes/                 M-V-C: rotas -> controllers
+├── server.js / app.js      inicialização e configuração do Express
+├── config/env.js           leitura e validação das variáveis de ambiente
+├── routes/                 mapeia URL -> controller
 ├── controllers/            recebem a requisição e devolvem a resposta (sem regra, sem Prisma)
 ├── services/               regras de negócio (ex.: saída não pode passar do saldo)
 ├── models/                 acesso a dados (Prisma)
 ├── middlewares/            authenticate, authorize, validate, notFound, errorHandler
-├── validators/             esquemas zod
+├── validators/             validação de dados escrita à mão
 ├── utils/                  AppError, serializers, assertOwnerOrAdmin
-└── lib/prisma.ts           PrismaClient com adapter do PostgreSQL
+└── lib/prisma.js           único PrismaClient, com adapter do MySQL
 ```
 
 Fluxo: `rota -> middlewares (authenticate, validate) -> controller -> service -> model -> banco`.
-**A "view" é o JSON** devolvido pela API (montado em `utils/serializers.ts`).
+**A "view" é o JSON** devolvido pela API (montado em `utils/serializers.js`).
 
 ## Modelo de dados
 
@@ -228,7 +241,7 @@ A verificação é **atômica**: dentro de uma `prisma.$transaction`, o service 
 Com a API rodando:
 
 ```bash
-# na raiz do repositório (../tools a partir desta pasta)
+# a partir desta pasta (backend/)
 node ../tools/smoke-test.mjs
 ```
 
@@ -250,8 +263,8 @@ Importe `postman/EstoqueFacil.postman_collection.json`. A variável `baseUrl` ap
 node ../tools/check-pins.mjs
 ```
 
-Falha (código 1) se Prisma não estiver exatamente em 7.10.0 no backend, ou, no frontend (quando existir), Tailwind em 4.3.0 — conferindo `package.json` e `package-lock.json`.
+Falha (código 1) se Prisma/adapter não estiverem exatamente em 7.10.0 no backend, ou, no frontend (quando existir), Tailwind em 4.3.0 — conferindo `package.json` e `package-lock.json`.
 
 ## Segurança
 
-Senhas com bcrypt (custo 10); JWT com expiração; `helmet` e CORS configurados; nenhum segredo no repositório (`.env` é ignorado; apenas `.env.example` é versionado).
+Senhas com bcrypt (custo 10); JWT com expiração; CORS configurado; nenhum segredo no repositório (`.env` é ignorado; apenas `.env.example` é versionado).
